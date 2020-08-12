@@ -2,13 +2,64 @@
 
 An in-memory key-value database implemented in the context of an interview.
 
+## Overview
+
+`inmemdb` is a key/value store written in [Go](https://golang.org/) with support for transactions using the `read commited` isolation level.
+
+`inmemdb` uses Go Modules introduced in Go 1.11 for dependency management.
+
+## Install
+
+```bash
+$ go get github.com/devodev/inmemdb
+```
+
+## Usage (library)
+
+Install the package
+
+```bash
+$ go get github.com/devodev/inmemdb
+```
+
+```golang
+package main
+
+import "github.com/devodev/inmemdb"
+
+func main() {
+    // Error handling omitted for brevity
+    db := NewDatabase()
+    db.CreateTransaction("tx1")
+    db.PutTxn("key1", "value1", "tx1")
+    db.CommitTransaction("tx1")
+    value, _ := db.Get("key1")
+}
+```
+
+## Tests
+
+Run all tests
+
+```bash
+$ go test -v
+```
+
+Run all tests with race condition check enabled
+
+```bash
+$ go test -v -race
+```
+
 ## Constraints
 
-Send a link to this repository within 48 hours.
+- **Language:** Golang
+- **Deadline:** 48 hours from the reception of the problem statement.
 
 ## Problem statement
 
-This is a simple database problem. You'll implement an in-memory database as a key value store. The interface for this database follows. You may modify it to match the idiomatic way to program using Go as the programming language.
+This is a simple database problem. You'll implement an in-memory database as a key value store. The interface for this database follows.</br>
+You may modify it to match the idiomatic way to program using Go as the programming language.
 
 ### Guidelines
 
@@ -39,12 +90,13 @@ Your API should accept the following:
   - Remove the value associated with “key” within the transaction with ID “transactionId”
   - Throws an exception or returns an error on failure
 
-Here is an example request sequence without transactions:
+#### Here is an example request sequence without transactions:
 
 ```javascript
 myDb.put(“example”, “foo”)
-myDb.get(“example”) // returns “foo”
-myDb.delete(“example”) myDb.get(“example”) // returns null
+myDb.get(“example”)        // returns “foo”
+myDb.delete(“example”)
+myDb.get(“example”)        // returns null
 myDb.delete(“example”)
 ```
 
@@ -61,49 +113,49 @@ In addition to the above requests, your program should also support basic transa
 - void commitTransaction(String transactionId)
   - Commits the transaction and invalidates the ID. If there is a conflict (meaning the transaction attempts to change a value for a key that was mutated after the transaction was created), the transaction always fails with an exception or an error is returned.
 
-Transactions should be isolated at the read committed level, as defined by this Wikipedia page.
+Transactions should be isolated at the read committed level, as defined by this [Wikipedia page](https://en.wikipedia.org/wiki/Isolation_(database_systems)#Read_committed).</br>
 Any put, delete, get operation that is issued without a transaction ID should commit immediately.
 
-Here is an example request sequence:
+#### Here is an example request sequence:
 
 ```javascript
 myDb.createTransaction(“abc”)
 myDb.put(“a”, “foo”, “abc”)
-myDb.get(“a”, “abc”) // returns “foo”
-myDb.get(“a”) // returns null
+myDb.get(“a”, “abc”)            // returns “foo”
+myDb.get(“a”)                   // returns null
 
 myDb.createTransaction(“xyz”)
 
 myDb.put(“a”, “bar”, “xyz”)
-myDb.get(“a”, “xyz”) // returns “bar”
+myDb.get(“a”, “xyz”)            // returns “bar”
 
 myDb.commitTransaction(“xyz”)
 
-myDb.get(“a”) // returns “bar”
+myDb.get(“a”)                   // returns “bar”
 
-myDb.commitTransaction(“abc”) // failure
+myDb.commitTransaction(“abc”)   // failure
 
-myDb.get(“a”); // returns “bar”
+myDb.get(“a”);                  // returns “bar”
 
 myDb.createTransaction(“abc”)
 
 myDb.put(“a”, “foo”, “abc”)
-myDb.get(“a”) // returns “bar”
+myDb.get(“a”)                   // returns “bar”
 
 myDb.rollbackTransaction(“abc”)
 
-myDb.put(“a”, “foo”, “abc”) // failure
-myDb.get(“a”) // returns “bar”
+myDb.put(“a”, “foo”, “abc”)     // failure
+myDb.get(“a”)                   // returns “bar”
 
 myDb.createTransaction(“def”)
 
 myDb.put(“b”, “foo”, “def”)
-myDb.get(“a”, “def”) // returns “bar”
-myDb.get(“b”, “def”) // returns “foo”
+myDb.get(“a”, “def”)            // returns “bar”
+myDb.get(“b”, “def”)            // returns “foo”
 
 myDb.rollbackTransaction(“def”)
 
-myDb.get(“b”) // returns null
+myDb.get(“b”)                   // returns null
 ```
 
 #### Performance Considerations
